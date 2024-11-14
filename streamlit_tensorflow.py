@@ -27,32 +27,39 @@ if os.path.exists(model_path):
             return image_array
 
         # UI Streamlit
-        st.title("Fashion MNIST Image Classifier")
-        st.write("Unggah gambar item fashion (misalnya sepatu, tas, baju), dan model akan memprediksi kelasnya.")
+        st.title("Fashion MNIST Image Classifier xxxx")  # Ganti xxxx dengan 4 digit NPM
+        st.write("Unggah satu atau lebih gambar item fashion (misalnya sepatu, tas, baju), dan model akan memprediksi kelasnya.")
 
-        # File uploader untuk input gambar
-        uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"])
+        # File uploader untuk input beberapa gambar
+        uploaded_files = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
-        # Tampilkan gambar yang diunggah dan tombol "Predict"
-        if uploaded_file is not None:
-            # Tampilkan gambar yang diunggah
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Gambar yang Diunggah", use_column_width=True)
+        # Sidebar untuk tombol prediksi
+        with st.sidebar:
+            predict_button = st.button("Predict")
 
-            # Tombol "Predict"
-            if st.button("Predict"):
-                # Proses gambar dan prediksi
-                processed_image = preprocess_image(image)
-                predictions = model.predict(processed_image)[0]
-                
-                # Mendapatkan kelas dan confidence dengan softmax
-                predicted_class = np.argmax(predictions)
-                confidence = predictions[predicted_class] * 100  # Pastikan confidence dalam persentase
+        # Tampilkan gambar yang diunggah
+        if uploaded_files:
+            images = [Image.open(file) for file in uploaded_files]
+            st.image(images, caption=[file.name for file in uploaded_files], use_column_width=True)
 
-                # Tampilkan hasil prediksi
-                st.write("### Hasil Prediksi")
-                st.write(f"Kelas Prediksi: **{class_names[predicted_class]}**")
-                st.write(f"Confidence: **{confidence:.2f}%**")
+            # Jika tombol prediksi di sidebar ditekan
+            if predict_button:
+                st.sidebar.write("### Hasil Prediksi")
+
+                # Proses setiap gambar yang diunggah
+                for file, image in zip(uploaded_files, images):
+                    # Proses gambar dan prediksi
+                    processed_image = preprocess_image(image)
+                    predictions = model.predict(processed_image)[0]
+
+                    # Mendapatkan kelas dan confidence dengan softmax
+                    predicted_class = np.argmax(predictions)
+                    confidence = predictions[predicted_class] * 100  # Confidence dalam persentase
+
+                    # Tampilkan hasil prediksi untuk setiap gambar di sidebar
+                    st.sidebar.write(f"#### {file.name}")
+                    st.sidebar.write(f"Kelas Prediksi: **{class_names[predicted_class]}**")
+                    st.sidebar.write(f"Confidence: **{confidence:.2f}%**")
 
     except Exception as e:
         st.error(f"Error: {str(e)}")
